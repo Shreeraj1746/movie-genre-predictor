@@ -85,24 +85,28 @@ movie-genre-predictor/
 ### Local Development Setup
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/yourusername/movie-genre-predictor.git
    cd movie-genre-predictor
    ```
 
 2. Create and activate a virtual environment:
+
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate
    ```
 
 3. Install dependencies:
+
    ```bash
    pip install -r requirements.txt
    pip install -r requirements-dev.txt
    ```
 
 4. Install pre-commit hooks:
+
    ```bash
    pre-commit install
    pre-commit install --hook-type commit-msg
@@ -129,7 +133,7 @@ python -m src.flows.genre_classifier run
 uvicorn src.api.main:app --reload
 ```
 
-Visit http://localhost:8000/docs to see the API documentation.
+Visit <http://localhost:8000/docs> to see the API documentation.
 
 ## CI/CD Pipeline
 
@@ -138,6 +142,7 @@ This project uses GitHub Actions for CI/CD:
 ### Continuous Integration (CI)
 
 The CI workflow (`ci.yml`) runs on every push and pull request:
+
 - Runs pre-commit hooks (ruff, black, commitizen)
 - Executes unit tests
 - Builds project artifacts
@@ -145,6 +150,7 @@ The CI workflow (`ci.yml`) runs on every push and pull request:
 ### Continuous Deployment (CD)
 
 The CD workflow (`deploy.yml`) runs when changes are pushed to the main branch:
+
 - Connects to the EC2 instance via SSH
 - Pulls the latest code
 - Installs dependencies
@@ -155,11 +161,13 @@ The CD workflow (`deploy.yml`) runs when changes are pushed to the main branch:
 The project is deployed to AWS EC2 (t3.micro instance) using Terraform:
 
 1. Configure AWS credentials:
+
    ```bash
    aws configure
    ```
 
 2. Initialize and apply Terraform:
+
    ```bash
    cd infrastructure
    terraform init
