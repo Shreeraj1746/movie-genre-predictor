@@ -6,7 +6,8 @@ This module defines the Pydantic models used by the FastAPI application
 for request and response validation.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -23,8 +24,11 @@ class PredictionRequest(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "plot": "A computer hacker learns from mysterious rebels about the true nature "
-                "of his reality and his role in the war against its controllers."
+                "plot": (
+                    "A computer hacker learns from mysterious rebels about the true "
+                    "nature of his reality and his role in the war against "
+                    "its controllers."
+                )
             }
         }
 
@@ -54,11 +58,15 @@ class PredictionResponse(BaseModel):
     """
 
     predicted_genre: str = Field(..., description="Top predicted genre")
-    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score for top genre")
-    all_predictions: List[GenrePrediction] = Field(
+    confidence: float = Field(
+        ..., ge=0.0, le=1.0, description="Confidence score for top genre"
+    )
+    all_predictions: list[GenrePrediction] = Field(
         ..., description="All genre predictions with confidence scores"
     )
-    plot_summary: str = Field(..., description="Original plot summary used for prediction")
+    plot_summary: str = Field(
+        ..., description="Original plot summary used for prediction"
+    )
 
 
 class ModelInfo(BaseModel):
@@ -75,9 +83,9 @@ class ModelInfo(BaseModel):
 
     model_type: str = Field(..., description="Type of model used")
     num_genres: int = Field(..., description="Number of genres the model can predict")
-    available_genres: List[str] = Field(..., description="List of available genres")
+    available_genres: list[str] = Field(..., description="List of available genres")
     model_version: str = Field(..., description="Model version or timestamp")
-    feature_extractor_info: Dict[str, Any] = Field(
+    feature_extractor_info: dict[str, Any] = Field(
         ..., description="Information about the feature extractor"
     )
 

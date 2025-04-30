@@ -62,12 +62,16 @@ movie-genre-predictor/
 │   ├── test_data.py              # Test data processing
 │   ├── test_features.py          # Test feature engineering
 │   ├── test_model.py             # Test model training
-│   └── test_api.py               # Test API endpoints
+│   ├── test_api.py               # Test API endpoints
+│   └── test_integration.py       # End-to-end integration tests
 ├── .gitignore                    # Git ignore file
 ├── .pre-commit-config.yaml       # Pre-commit hooks configuration
+├── docker-compose.yml            # Docker Compose configuration
+├── Dockerfile                    # Docker image definition
 ├── pyproject.toml                # Python project configuration
 ├── requirements.txt              # Project dependencies
 ├── requirements-dev.txt          # Development dependencies
+├── run_integration_test.py       # Script to run Docker integration tests
 ├── setup.py                      # Package installation
 ├── status.md                     # Project status tracker
 └── README.md                     # Project documentation
@@ -134,6 +138,84 @@ uvicorn src.api.main:app --reload
 ```
 
 Visit <http://localhost:8000/docs> to see the API documentation.
+
+## Running Tests Locally
+
+### Unit Tests
+
+The project includes a comprehensive test suite to ensure code quality and reliability. You can run the unit tests using the Make target:
+
+```bash
+make test
+```
+
+This command will execute all unit tests and provide coverage information, showing which parts of the codebase are tested and which are not.
+
+To run specific tests, you can use pytest directly:
+
+```bash
+python -m pytest tests/test_model.py
+```
+
+### Running All Quality Checks
+
+To run both linting and tests in one command:
+
+```bash
+make all
+```
+
+## Docker Integration Testing
+
+The project includes a Docker-based integration testing setup for running the entire workflow locally in a containerized environment.
+
+### Prerequisites
+
+- Docker
+- Docker Compose
+
+### Running Integration Tests
+
+To run the full integration test suite:
+
+```bash
+make integration-test
+```
+
+This command:
+1. Builds a Docker image with the entire project
+2. Runs the integration test inside a Docker container
+3. Executes the end-to-end workflow using Docker Compose
+
+You can also run specific parts of the test:
+
+```bash
+# Run only the integration test
+make integration-test-only
+
+# Run only the full workflow
+make workflow-only
+```
+
+### Test Dataset
+
+For integration testing, the project includes a sample data generator that creates a small synthetic dataset that mimics the structure of the full CMU Movie Summary Corpus. The sample data is small enough to be checked into the repository and serves as the "gold" test dataset.
+
+To generate the sample data manually:
+
+```bash
+python data/sample_data_generator.py
+```
+
+### Workflow Outputs
+
+After running the integration test, the following outputs will be generated:
+
+- Preprocessed data files in `data/processed/`
+- Trained model files in `models/logreg_*` (with timestamp)
+- Evaluation metrics in `models/logreg_*/model_info.json`
+
+These outputs are checked against expected values to ensure the workflow functions correctly.
 
 ## CI/CD Pipeline
 

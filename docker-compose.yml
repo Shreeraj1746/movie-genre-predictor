@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  movie-genre-predictor:
+    build:
+      context: .
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./reports:/app/reports
+    environment:
+      - METAFLOW_DATASTORE_SYSROOT_LOCAL=/app/metaflow
+      - METAFLOW_DEFAULT_DATASTORE=local
+      - METAFLOW_DEFAULT_METADATA=local
+      - METAFLOW_USER=docker-user
+      - USERNAME=docker-user
+    command: sh -c "python data/sample_data_generator.py && python -m src.data.preprocess && python -m src.flows.genre_classifier run"

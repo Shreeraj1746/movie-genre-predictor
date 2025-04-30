@@ -6,23 +6,17 @@ This module provides functions to evaluate trained machine learning models
 for predicting movie genres based on plot summaries.
 """
 
-import logging
 import json
+import logging
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, Union
+from typing import Any
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.metrics import (
-    confusion_matrix,
-    classification_report,
-    accuracy_score,
-    precision_recall_fscore_support,
-    roc_curve,
-    auc,
-)
 import seaborn as sns
+from sklearn.metrics import (accuracy_score, classification_report,
+                             confusion_matrix, precision_recall_fscore_support)
 
 from src.model.train import GenreClassifier
 
@@ -40,16 +34,16 @@ REPORTS_DIR = ROOT_DIR / "reports"
 
 def evaluate_model(
     model: GenreClassifier,
-    X_test: np.ndarray,
+    features_test: np.ndarray,
     y_test: np.ndarray,
-    output_dir: Optional[Path] = None,
-) -> Dict[str, Any]:
+    output_dir: Path | None = None,
+) -> dict[str, Any]:
     """
     Evaluate a trained genre classification model.
 
     Args:
         model: Trained GenreClassifier instance
-        X_test: Test features
+        features_test: Test features
         y_test: Test labels (genre strings)
         output_dir: Directory to save evaluation reports and visualizations.
             If None, reports are not saved.
@@ -60,7 +54,7 @@ def evaluate_model(
     logger.info("Evaluating model performance")
 
     # Generate predictions
-    y_pred = model.predict(X_test)
+    y_pred = model.predict(features_test)
 
     # Calculate metrics
     accuracy = accuracy_score(y_test, y_pred)
@@ -91,9 +85,7 @@ def evaluate_model(
             json.dump(metrics, f, indent=2)
 
         # Generate and save confusion matrix
-        cm = confusion_matrix(
-            y_test, y_pred, labels=model.label_encoder.classes_
-        )
+        cm = confusion_matrix(y_test, y_pred, labels=model.label_encoder.classes_)
         plt.figure(figsize=(12, 10))
         sns.heatmap(
             cm,
@@ -127,16 +119,16 @@ def evaluate_model(
 
 def evaluate_model_with_probability_threshold(
     model: GenreClassifier,
-    X_test: np.ndarray,
+    features_test: np.ndarray,
     y_test: np.ndarray,
     threshold: float = 0.5,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Evaluate a model using a custom probability threshold for classification.
 
     Args:
         model: Trained GenreClassifier instance
-        X_test: Test features
+        features_test: Test features
         y_test: Test labels (genre strings)
         threshold: Probability threshold for classification
 
@@ -152,20 +144,14 @@ def evaluate_model_with_probability_threshold(
     logger.info(f"Evaluating model with probability threshold: {threshold}")
 
     # Get predicted probabilities
-    y_proba = model.predict_proba(X_test)
-
-    # Convert test labels to encoded form
-    y_test_encoded = model.label_encoder.transform(y_test)
-
-    # Convert to one-hot encoding for multi-class evaluation
-    n_classes = len(model.label_encoder.classes_)
-    y_test_one_hot = np.eye(n_classes)[y_test_encoded]
+    y_proba = model.predict_proba(features_test)
 
     # Apply threshold to probabilities
     y_pred_one_hot = (y_proba >= threshold).astype(int)
 
-    # For each sample, if no class is above threshold, choose the highest probability class
-    zero_pred_rows = (y_pred_one_hot.sum(axis=1) == 0)
+    # For each sample, if no class is above threshold,
+    # choose the highest probability class
+    zero_pred_rows = y_pred_one_hot.sum(axis=1) == 0
     if np.any(zero_pred_rows):
         for i in np.where(zero_pred_rows)[0]:
             y_pred_one_hot[i, np.argmax(y_proba[i])] = 1
@@ -197,16 +183,16 @@ def evaluate_model_with_probability_threshold(
 
 def find_optimal_threshold(
     model: GenreClassifier,
-    X_val: np.ndarray,
+    features_val: np.ndarray,
     y_val: np.ndarray,
-    thresholds: List[float] = None,
-) -> Tuple[float, Dict[str, Any]]:
+    thresholds: list[float] = None,
+) -> tuple[float, dict[str, Any]]:
     """
     Find the optimal probability threshold for classification.
 
     Args:
         model: Trained GenreClassifier instance
-        X_val: Validation features
+        features_val: Validation features
         y_val: Validation labels (genre strings)
         thresholds: List of thresholds to evaluate. If None, defaults to
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
@@ -223,7 +209,7 @@ def find_optimal_threshold(
     results = []
     for threshold in thresholds:
         metrics = evaluate_model_with_probability_threshold(
-            model, X_val, y_val, threshold
+            model, features_val, y_val, threshold
         )
         results.append(metrics)
 
@@ -233,7 +219,7 @@ def find_optimal_threshold(
     best_metrics = results[best_idx]
 
     logger.info(f"Optimal threshold: {best_threshold}")
-    logger.info(f"Metrics at optimal threshold:")
+    logger.info("Metrics at optimal threshold:")
     logger.info(f"  Accuracy: {best_metrics['accuracy']:.4f}")
     logger.info(f"  F1 Score: {best_metrics['f1']:.4f}")
 
@@ -245,6 +231,7 @@ if __name__ == "__main__":
     from sklearn.datasets import fetch_20newsgroups
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.model_selection import train_test_split
+
     from src.model.train import train_model
 
     # Load example dataset
@@ -253,19 +240,19 @@ if __name__ == "__main__":
 
     # Extract features
     vectorizer = TfidfVectorizer(max_features=1000)
-    X = vectorizer.fit_transform(newsgroups.data)
+    features = vectorizer.fit_transform(newsgroups.data)
     y = np.array(newsgroups.target_names)[newsgroups.target]
 
     # Split data
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+    features_train, features_test, y_train, y_test = train_test_split(
+        features, y, test_size=0.2, random_state=42
     )
 
     # Train model
-    model = train_model(X_train, y_train, model_type="logreg")
+    model = train_model(features_train, y_train, model_type="logreg")
 
     # Evaluate model
-    metrics = evaluate_model(model, X_test, y_test)
+    metrics = evaluate_model(model, features_test, y_test)
 
     print(f"Test accuracy: {metrics['accuracy']:.4f}")
     print(f"Test F1 score: {metrics['f1']:.4f}")

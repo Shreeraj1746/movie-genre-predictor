@@ -7,15 +7,12 @@ predicting movie genres based on plot summaries.
 """
 
 import json
-import os
 import logging
+import os
 from pathlib import Path
-from typing import Dict, List, Any, Tuple
 
-import numpy as np
 import pandas as pd
-from metaflow import FlowSpec, step, Parameter, IncludeFile
-from sklearn.metrics import accuracy_score, classification_report
+from metaflow import FlowSpec, Parameter, step
 
 # Configure logging
 logging.basicConfig(
@@ -73,10 +70,9 @@ class GenreClassifierFlow(FlowSpec):
         """
         Start the workflow and validate parameters.
         """
-        import os
 
-        print(f"Starting movie genre classification workflow")
-        print(f"Parameters:")
+        print("Starting movie genre classification workflow")
+        print("Parameters:")
         print(f"  Data path: {self.data_path}")
         print(f"  Model type: {self.model_type}")
         print(f"  Max features: {self.max_features}")
@@ -97,8 +93,6 @@ class GenreClassifierFlow(FlowSpec):
         """
         Load and preprocess the movie data.
         """
-        import pandas as pd
-        import os
 
         print("Loading data...")
 
@@ -139,22 +133,28 @@ class GenreClassifierFlow(FlowSpec):
         )
 
         # Extract features from the plot summaries
-        X_train = self.feature_extractor.fit_transform_tfidf(self.train_data["plot"].tolist())
-        X_val = self.feature_extractor.transform_tfidf(self.val_data["plot"].tolist())
-        X_test = self.feature_extractor.transform_tfidf(self.test_data["plot"].tolist())
+        features_train = self.feature_extractor.fit_transform_tfidf(
+            self.train_data["plot"].tolist()
+        )
+        features_val = self.feature_extractor.transform_tfidf(
+            self.val_data["plot"].tolist()
+        )
+        features_test = self.feature_extractor.transform_tfidf(
+            self.test_data["plot"].tolist()
+        )
 
         # Store features for the next step
-        self.X_train = X_train
-        self.X_val = X_val
-        self.X_test = X_test
+        self.features_train = features_train
+        self.features_val = features_val
+        self.features_test = features_test
         self.y_train = self.train_data["genre"].tolist()
         self.y_val = self.val_data["genre"].tolist()
         self.y_test = self.test_data["genre"].tolist()
 
-        print(f"Extracted features with shape:")
-        print(f"  Training: {self.X_train.shape}")
-        print(f"  Validation: {self.X_val.shape}")
-        print(f"  Test: {self.X_test.shape}")
+        print("Extracted features with shape:")
+        print(f"  Training: {self.features_train.shape}")
+        print(f"  Validation: {self.features_val.shape}")
+        print(f"  Test: {self.features_test.shape}")
 
         # Continue to the next step
         self.next(self.train_model)
@@ -170,7 +170,7 @@ class GenreClassifierFlow(FlowSpec):
 
         # Train the model
         self.model = train_model(
-            X_train=self.X_train,
+            features_train=self.features_train,
             y_train=self.y_train,
             model_type=self.model_type,
             model_params={},
@@ -193,14 +193,14 @@ class GenreClassifierFlow(FlowSpec):
         # Evaluate on validation data
         self.val_metrics = evaluate_model(
             model=self.model,
-            X_test=self.X_val,
+            features_test=self.features_val,
             y_test=self.y_val,
         )
 
         # Evaluate on test data
         self.test_metrics = evaluate_model(
             model=self.model,
-            X_test=self.X_test,
+            features_test=self.features_test,
             y_test=self.y_test,
         )
 
@@ -209,7 +209,11 @@ class GenreClassifierFlow(FlowSpec):
 
         # Find genres where the model performs worst
         report = self.test_metrics["per_class"]
-        per_class_f1 = {genre: report[genre]["f1-score"] for genre in report if genre not in ["accuracy", "macro avg", "weighted avg"]}
+        per_class_f1 = {
+            genre: report[genre]["f1-score"]
+            for genre in report
+            if genre not in ["accuracy", "macro avg", "weighted avg"]
+        }
         worst_genres = sorted(per_class_f1.items(), key=lambda x: x[1])[:3]
 
         print("\nWorst performing genres:")
@@ -224,8 +228,6 @@ class GenreClassifierFlow(FlowSpec):
         """
         Save the trained model and artifacts for deployment.
         """
-        import os
-        import joblib
         from datetime import datetime
 
         print("Saving model artifacts...")
@@ -285,7 +287,7 @@ class GenreClassifierFlow(FlowSpec):
         print("\nTo deploy the model as a FastAPI service:")
         print(f"  1. Set MODEL_PATH={self.model_path}")
         print(f"  2. Set FEATURE_EXTRACTOR_PATH={self.feature_path}")
-        print(f"  3. Run: uvicorn src.api.main:app --reload")
+        print("  3. Run: uvicorn src.api.main:app --reload")
 
 
 if __name__ == "__main__":

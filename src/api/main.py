@@ -6,28 +6,19 @@ This module provides a REST API for predicting movie genres based on plot summar
 using a trained machine learning model.
 """
 
-import os
 import logging
-import sys
+import os
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
 
 import numpy as np
-import joblib
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 import uvicorn
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.models import (
-    PredictionRequest,
-    PredictionResponse,
-    GenrePrediction,
-    ModelInfo,
-    HealthResponse,
-)
-from src.model.train import GenreClassifier
+from src.api.models import (GenrePrediction, HealthResponse, ModelInfo,
+                            PredictionRequest, PredictionResponse)
 from src.features.text_features import TextFeatureExtractor
+from src.model.train import GenreClassifier
 
 # Configure logging
 logging.basicConfig(
@@ -61,17 +52,17 @@ model = None
 feature_extractor = None
 
 
-def get_model_path() -> Optional[str]:
+def get_model_path() -> str | None:
     """Get the model path from environment variable or default location."""
     return os.environ.get("MODEL_PATH", None)
 
 
-def get_feature_extractor_path() -> Optional[str]:
+def get_feature_extractor_path() -> str | None:
     """Get the feature extractor path from environment variable or default location."""
     return os.environ.get("FEATURE_EXTRACTOR_PATH", None)
 
 
-def load_model() -> Tuple[Optional[GenreClassifier], Optional[TextFeatureExtractor]]:
+def load_model() -> tuple[GenreClassifier | None, TextFeatureExtractor | None]:
     """
     Load the model and feature extractor from disk.
 
@@ -87,7 +78,7 @@ def load_model() -> Tuple[Optional[GenreClassifier], Optional[TextFeatureExtract
         try:
             logger.info(f"Loading model from {model_path}")
             model = GenreClassifier.load(Path(model_path))
-            logger.info(f"Model loaded successfully")
+            logger.info("Model loaded successfully")
         except Exception as e:
             logger.error(f"Error loading model: {e}")
             model = None
@@ -96,7 +87,7 @@ def load_model() -> Tuple[Optional[GenreClassifier], Optional[TextFeatureExtract
         try:
             logger.info(f"Loading feature extractor from {feature_extractor_path}")
             feature_extractor = TextFeatureExtractor.load(Path(feature_extractor_path))
-            logger.info(f"Feature extractor loaded successfully")
+            logger.info("Feature extractor loaded successfully")
         except Exception as e:
             logger.error(f"Error loading feature extractor: {e}")
             feature_extractor = None
@@ -164,7 +155,10 @@ async def get_model_info():
     if model is None or feature_extractor is None:
         raise HTTPException(
             status_code=503,
-            detail="Model not loaded. Please ensure the model paths are configured correctly.",
+            detail=(
+                "Model not loaded. Please ensure the model paths "
+                "are configured correctly."
+            ),
         )
 
     # Get the model directory from the model path
@@ -213,7 +207,10 @@ async def predict_genre(request: PredictionRequest):
     if model is None or feature_extractor is None:
         raise HTTPException(
             status_code=503,
-            detail="Model not loaded. Please ensure the model paths are configured correctly.",
+            detail=(
+                "Model not loaded. Please ensure the model paths "
+                "are configured correctly."
+            ),
         )
 
     try:
@@ -221,15 +218,16 @@ async def predict_genre(request: PredictionRequest):
         plot = request.plot
 
         # Extract features
-        X = feature_extractor.transform_tfidf([plot])
+        features = feature_extractor.transform_tfidf([plot])
 
         # Make prediction
-        predicted_genre = model.predict(X)[0]
+        predicted_genre = model.predict(features)[0]
 
         # Get prediction probabilities
         if hasattr(model.model, "predict_proba"):
-            probs = model.predict_proba(X)[0]
-            genre_indices = np.argsort(probs)[::-1]  # Sort in descending order
+            probs = model.predict_proba(features)[0]
+            # Sort in descending order
+            genre_indices = np.argsort(probs)[::-1]
             genres = model.label_encoder.classes_[genre_indices]
             confidences = probs[genre_indices]
 
@@ -239,10 +237,10 @@ async def predict_genre(request: PredictionRequest):
             # Create prediction response
             all_predictions = [
                 GenrePrediction(genre=genre, confidence=float(conf))
-                for genre, conf in zip(genres, confidences)
+                for genre, conf in zip(genres, confidences, strict=False)
             ]
         else:
-            # If the model doesn't support probabilities, use a default confidence of 1.0
+            # If model doesn't support probabilities, use a default confidence
             top_confidence = 1.0
             all_predictions = [GenrePrediction(genre=predicted_genre, confidence=1.0)]
 
@@ -253,12 +251,12 @@ async def predict_genre(request: PredictionRequest):
             plot_summary=plot,
         )
 
-    except Exception as e:
-        logger.error(f"Error making prediction: {e}")
+    except Exception as err:
+        logger.error(f"Error making prediction: {err}")
         raise HTTPException(
             status_code=500,
-            detail=f"Error making prediction: {str(e)}",
-        )
+            detail="Error making prediction: " + str(err),
+        ) from err
 
 
 if __name__ == "__main__":

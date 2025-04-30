@@ -1,1 +1,1 @@
-"""Test package for the Movie Genre Predictor."""
+"""Tests for the movie genre predictor project."""

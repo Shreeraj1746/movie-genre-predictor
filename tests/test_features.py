@@ -5,8 +5,9 @@ Tests for the text feature extraction module.
 
 import tempfile
 from pathlib import Path
+
 import numpy as np
-import pytest
+
 from src.features.text_features import TextFeatureExtractor
 
 
@@ -63,9 +64,7 @@ def test_save_load():
         loaded_features = loaded_extractor.transform_tfidf(texts)
 
         # Check that the features are the same
-        np.testing.assert_array_equal(
-            features.toarray(), loaded_features.toarray()
-        )
+        np.testing.assert_array_equal(features.toarray(), loaded_features.toarray())
 
         # Check that the attributes are preserved
         assert loaded_extractor.max_features == extractor.max_features

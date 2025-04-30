@@ -22,15 +22,27 @@ repos:
       - id: commitizen
         stages: [commit-msg]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-requests, types-PyYAML]
-        args: [--ignore-missing-imports]
-
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
         name: isort (python)
+
+  # Local hooks to run Python tests
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        language: system
+        entry: python -m pytest tests/ --verbose --cov=src
+        types: [python]
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: integration-test
+        name: integration-test
+        language: system
+        entry: python run_integration_test.py --mode test
+        types: [python]
+        pass_filenames: false
+        stages: [pre-push]

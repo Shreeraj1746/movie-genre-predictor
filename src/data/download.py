@@ -6,10 +6,9 @@ This script downloads plot summaries and movie metadata from the
 CMU Movie Summary Corpus and saves them to the data/raw directory.
 """
 
-import os
 import logging
+import os
 from pathlib import Path
-from typing import Dict, Optional
 
 import requests
 from tqdm import tqdm
@@ -22,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # URLs for the dataset files
-DATASET_URLS: Dict[str, str] = {
+DATASET_URLS: dict[str, str] = {
     "plot_summaries.txt": "http://www.cs.cmu.edu/~ark/personas/data/plot_summaries.txt",
     "movie.metadata.tsv": "http://www.cs.cmu.edu/~ark/personas/data/movie.metadata.tsv",
 }
@@ -66,7 +65,7 @@ def download_file(url: str, filepath: Path, chunk_size: int = 8192) -> None:
         raise
 
 
-def download_dataset(output_dir: Optional[Path] = None) -> bool:
+def download_dataset(output_dir: Path | None = None) -> bool:
     """
     Download the CMU Movie Summary Corpus dataset.
 

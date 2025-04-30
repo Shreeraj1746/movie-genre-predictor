@@ -1,4 +1,12 @@
-from setuptools import setup, find_packages
+import os
+
+from setuptools import find_packages, setup
+
+# Read long description, falling back to a simple string if README.md is not available
+long_description = "ML project that predicts movie genres based on plot summaries"
+if os.path.exists("README.md"):
+    with open("README.md") as f:
+        long_description = f.read()
 
 setup(
     name="movie-genre-predictor",
@@ -22,7 +30,7 @@ setup(
     author="Your Name",
     author_email="your.email@example.com",
     description="ML project that predicts movie genres based on plot summaries",
-    long_description=open("README.md").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
         "Programming Language :: Python :: 3",

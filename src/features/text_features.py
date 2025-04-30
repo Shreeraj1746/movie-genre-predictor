@@ -9,11 +9,10 @@ summaries using various techniques like TF-IDF and text preprocessing.
 import logging
 import pickle
 from pathlib import Path
-from typing import Union, Optional, List, Dict, Any
 
 import nltk
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 # Configure logging
 logging.basicConfig(
@@ -21,6 +20,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
 
 # Download required NLTK resources
 def download_nltk_resources() -> None:
@@ -49,8 +49,8 @@ class TextFeatureExtractor:
         self,
         max_features: int = 10000,
         ngram_range: tuple = (1, 2),
-        min_df: Union[float, int] = 2,
-        max_df: Union[float, int] = 0.95,
+        min_df: float | int = 2,
+        max_df: float | int = 0.95,
         stop_words: str = "english",
     ):
         """
@@ -58,7 +58,8 @@ class TextFeatureExtractor:
 
         Args:
             max_features: Maximum number of features to extract
-            ngram_range: Range of n-grams to consider (e.g., (1, 2) for unigrams and bigrams)
+            ngram_range: Range of n-grams to consider
+                (e.g., (1, 2) for unigrams and bigrams)
             min_df: Minimum document frequency for terms
             max_df: Maximum document frequency for terms
             stop_words: Stop words to exclude (e.g., "english" or a list of words)
@@ -89,7 +90,7 @@ class TextFeatureExtractor:
         # Download NLTK resources if needed
         download_nltk_resources()
 
-    def fit_tfidf(self, texts: List[str]) -> "TextFeatureExtractor":
+    def fit_tfidf(self, texts: list[str]) -> "TextFeatureExtractor":
         """
         Fit the TF-IDF vectorizer on a corpus of texts.
 
@@ -101,10 +102,11 @@ class TextFeatureExtractor:
         """
         logger.info("Fitting TF-IDF vectorizer on text corpus")
         self.tfidf_vectorizer.fit(texts)
-        logger.info(f"TF-IDF vocabulary size: {len(self.tfidf_vectorizer.vocabulary_)}")
+        vocab_size = len(self.tfidf_vectorizer.vocabulary_)
+        logger.info(f"TF-IDF vocabulary size: {vocab_size}")
         return self
 
-    def transform_tfidf(self, texts: List[str]) -> np.ndarray:
+    def transform_tfidf(self, texts: list[str]) -> np.ndarray:
         """
         Transform texts into TF-IDF feature vectors.
 
@@ -117,7 +119,7 @@ class TextFeatureExtractor:
         logger.info(f"Transforming {len(texts)} texts to TF-IDF features")
         return self.tfidf_vectorizer.transform(texts)
 
-    def fit_transform_tfidf(self, texts: List[str]) -> np.ndarray:
+    def fit_transform_tfidf(self, texts: list[str]) -> np.ndarray:
         """
         Fit the TF-IDF vectorizer and transform texts in one step.
 
@@ -130,7 +132,7 @@ class TextFeatureExtractor:
         logger.info(f"Fit-transforming {len(texts)} texts to TF-IDF features")
         return self.tfidf_vectorizer.fit_transform(texts)
 
-    def get_top_features(self, n: int = 20) -> List[str]:
+    def get_top_features(self, n: int = 20) -> list[str]:
         """
         Get the top n features (terms) from the TF-IDF vectorizer.
 
