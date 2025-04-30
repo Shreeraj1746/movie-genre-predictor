@@ -17,7 +17,9 @@ from src.model.train import GenreClassifier
 @pytest.fixture()
 def test_client():
     """Create a test client for the FastAPI app."""
-    return TestClient(app)
+    # Initialize client using a more compatible approach
+    client = TestClient(app)
+    return client
 
 
 @pytest.fixture()
