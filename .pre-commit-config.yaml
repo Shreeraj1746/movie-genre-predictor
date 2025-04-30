@@ -37,7 +37,8 @@ repos:
         entry: python -m pytest tests/ --verbose --cov=src
         types: [python]
         pass_filenames: false
-        stages: [pre-push]
+        always_run: true
+        stages: [push, manual]
 
       - id: integration-test
         name: integration-test
@@ -45,4 +46,5 @@ repos:
         entry: python run_integration_test.py --mode test
         types: [python]
         pass_filenames: false
-        stages: [pre-push]
+        always_run: true
+        stages: [push, manual]

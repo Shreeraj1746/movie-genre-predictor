@@ -19,6 +19,8 @@
 - Added .isort.cfg configuration file to ensure consistent import formatting
 - Optimized Docker image handling for integration tests (local/Docker Hub/build)
 - Added ability to push and pull Docker images from Docker Hub
+- Updated CI workflow to run integration tests when pushing to main branch
+- Fixed pre-commit hooks to ensure tests run on push to main branch
 
 ## Next Steps
 - Phase 2: Data Processing and Feature Engineering
@@ -40,3 +42,4 @@
 - Isort configuration setup
 - Docker image handling optimization
 - Docker Hub integration
+- Testing automation on push to main branch
