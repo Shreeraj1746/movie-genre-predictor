@@ -19,6 +19,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Docker image details
+IMAGE_NAME = "movie-genre-predictor"
+IMAGE_TAG = "latest"
+DOCKER_HUB_REPO = "shreeraj1746"
+FULL_IMAGE_NAME = f"{IMAGE_NAME}:{IMAGE_TAG}"
+DOCKER_HUB_IMAGE = f"{DOCKER_HUB_REPO}/{FULL_IMAGE_NAME}"
+
 
 def run_command(cmd, capture_output=True, check=False):
     """
@@ -45,11 +52,52 @@ def run_command(cmd, capture_output=True, check=False):
         return subprocess.run(cmd, check=check)
 
 
-def build_docker_image():
-    """Build the Docker image."""
-    logger.info("Building Docker image...")
+def check_image_exists_locally():
+    """
+    Check if the Docker image exists locally.
 
-    cmd = ["docker", "build", "-t", "movie-genre-predictor:latest", "."]
+    Returns:
+        bool: True if the image exists locally, False otherwise.
+    """
+    cmd = ["docker", "images", "--format", "{{.Repository}}:{{.Tag}}", FULL_IMAGE_NAME]
+    result = run_command(cmd)
+
+    return (
+        FULL_IMAGE_NAME in result.stdout.strip().split("\n") if result.stdout else False
+    )
+
+
+def pull_image_from_docker_hub():
+    """
+    Pull the Docker image from Docker Hub.
+
+    Returns:
+        bool: True if successful, False if failed.
+    """
+    logger.info(f"Attempting to pull image from Docker Hub: {DOCKER_HUB_IMAGE}")
+    cmd = ["docker", "pull", DOCKER_HUB_IMAGE]
+    result = run_command(cmd)
+
+    if result.returncode != 0:
+        logger.warning("Failed to pull image from Docker Hub")
+        return False
+
+    # Tag the pulled image with the local name
+    if DOCKER_HUB_IMAGE != FULL_IMAGE_NAME:
+        tag_cmd = ["docker", "tag", DOCKER_HUB_IMAGE, FULL_IMAGE_NAME]
+        tag_result = run_command(tag_cmd)
+        if tag_result.returncode != 0:
+            logger.warning(f"Failed to tag pulled image as {FULL_IMAGE_NAME}")
+            return False
+
+    return True
+
+
+def build_docker_image():
+    """Build the Docker image locally."""
+    logger.info("Building Docker image locally...")
+
+    cmd = ["docker", "build", "-t", FULL_IMAGE_NAME, "."]
     result = run_command(cmd)
 
     if result.returncode != 0:
@@ -57,6 +105,62 @@ def build_docker_image():
         sys.exit(1)
 
     logger.info("Docker image built successfully")
+    return True
+
+
+def ensure_docker_image():
+    """
+    Ensure the Docker image is available using the following order:
+    1. Use local image if available
+    2. Pull from Docker Hub if available
+    3. Build locally if neither of the above is available
+
+    Returns:
+        bool: True if the image is available
+    """
+    # Check if image exists locally
+    if check_image_exists_locally():
+        logger.info(f"Using existing local Docker image: {FULL_IMAGE_NAME}")
+        return True
+
+    # Try to pull from Docker Hub
+    if pull_image_from_docker_hub():
+        logger.info(
+            f"Successfully pulled Docker image from Docker Hub: {DOCKER_HUB_IMAGE}"
+        )
+        return True
+
+    # Build locally as last resort
+    logger.info("No existing image found locally or on Docker Hub. Building image...")
+    return build_docker_image()
+
+
+def push_to_docker_hub():
+    """
+    Push the built image to Docker Hub.
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    # First tag the image with the Docker Hub repository name
+    if DOCKER_HUB_IMAGE != FULL_IMAGE_NAME:
+        tag_cmd = ["docker", "tag", FULL_IMAGE_NAME, DOCKER_HUB_IMAGE]
+        tag_result = run_command(tag_cmd)
+        if tag_result.returncode != 0:
+            logger.error(f"Failed to tag image for Docker Hub: {DOCKER_HUB_IMAGE}")
+            return False
+
+    # Push to Docker Hub
+    logger.info(f"Pushing image to Docker Hub: {DOCKER_HUB_IMAGE}")
+    push_cmd = ["docker", "push", DOCKER_HUB_IMAGE]
+    push_result = run_command(push_cmd)
+
+    if push_result.returncode != 0:
+        logger.error("Failed to push image to Docker Hub")
+        return False
+
+    logger.info(f"Successfully pushed image to Docker Hub: {DOCKER_HUB_IMAGE}")
+    return True
 
 
 def run_integration_test_in_docker():
@@ -77,7 +181,7 @@ def run_integration_test_in_docker():
         f"{os.path.abspath('data')}:/app/data",
         "-v",
         f"{os.path.abspath('models')}:/app/models",
-        "movie-genre-predictor:latest",
+        FULL_IMAGE_NAME,
         "python",
         "-m",
         "tests.test_integration",
@@ -101,8 +205,8 @@ def run_full_workflow_in_docker():
     os.makedirs("data/processed", exist_ok=True)
     os.makedirs("models", exist_ok=True)
 
-    # Run docker-compose
-    cmd = ["docker-compose", "up", "--build"]
+    # Run docker-compose without the --build flag to use the existing image
+    cmd = ["docker-compose", "up"]
     result = run_command(cmd, capture_output=False)
 
     if result.returncode != 0:
@@ -126,11 +230,20 @@ def main():
             "or 'all' for both"
         ),
     )
+    parser.add_argument(
+        "--push",
+        action="store_true",
+        help="Push the Docker image to Docker Hub after building",
+    )
 
     args = parser.parse_args()
 
-    # Build Docker image
-    build_docker_image()
+    # Ensure Docker image is available
+    ensure_docker_image()
+
+    # Push to Docker Hub if requested
+    if args.push:
+        push_to_docker_hub()
 
     # Run selected mode
     if args.mode in ["test", "all"]:

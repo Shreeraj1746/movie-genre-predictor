@@ -80,6 +80,7 @@ clean:
 	rm -rf *.egg-info/
 	rm -rf .pytest_cache/
 	rm -rf .coverage
+	rm -rf .coverage.*
 	rm -rf htmlcov/
 	rm -rf .ruff_cache/
 	rm -rf .mypy_cache/

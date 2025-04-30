@@ -17,6 +17,8 @@
 - All linting issues fixed - codebase now follows Python best practices
 - Fixed isort issues in import statements in src/api/main.py and src/model/evaluate.py
 - Added .isort.cfg configuration file to ensure consistent import formatting
+- Optimized Docker image handling for integration tests (local/Docker Hub/build)
+- Added ability to push and pull Docker images from Docker Hub
 
 ## Next Steps
 - Phase 2: Data Processing and Feature Engineering
@@ -36,3 +38,5 @@
 - Code linting and formatting compliance
 - Import sorting fixes
 - Isort configuration setup
+- Docker image handling optimization
+- Docker Hub integration
