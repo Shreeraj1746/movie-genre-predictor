@@ -21,6 +21,8 @@
 - Added ability to push and pull Docker images from Docker Hub
 - Updated CI workflow to run integration tests when pushing to main branch
 - Fixed pre-commit hooks to ensure tests run on push to main branch
+- Fixed Git hook permissions to ensure pre-push hook runs properly
+- Updated Makefile to automatically make Git hooks executable
 
 ## Next Steps
 - Phase 2: Data Processing and Feature Engineering
@@ -43,3 +45,4 @@
 - Docker image handling optimization
 - Docker Hub integration
 - Testing automation on push to main branch
+- Git hook permissions fix

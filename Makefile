@@ -46,6 +46,8 @@ install-dev: install
 	$(PYTHON) -m pip install -r requirements-dev.txt
 	pre-commit install
 	pre-commit install --hook-type commit-msg
+	@echo "Making Git hooks executable..."
+	chmod +x .git/hooks/pre-commit .git/hooks/pre-push .git/hooks/commit-msg || true
 
 # Run linting
 lint: check-venv
