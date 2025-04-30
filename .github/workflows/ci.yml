@@ -92,8 +92,8 @@ jobs:
           python run_integration_test.py --mode test
 
   build:
-    runs-on: ubuntu-20.04
-    needs: [test, api_test, integration_test]
+    runs-on: ubuntu-latest
+    needs: [test, integration_test]
     if: success() && (github.ref == 'refs/heads/main' || needs.integration_test.result == 'skipped')
     steps:
       - uses: actions/checkout@v3

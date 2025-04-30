@@ -12,4 +12,3 @@ jupyter==1.0.0
 notebook==7.0.6
 terraform-local==0.21.0
 python-terraform==0.10.1
-httpx==0.24.1
