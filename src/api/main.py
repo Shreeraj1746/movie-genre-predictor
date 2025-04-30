@@ -15,8 +15,13 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.models import (GenrePrediction, HealthResponse, ModelInfo,
-                            PredictionRequest, PredictionResponse)
+from src.api.models import (
+    GenrePrediction,
+    HealthResponse,
+    ModelInfo,
+    PredictionRequest,
+    PredictionResponse,
+)
 from src.features.text_features import TextFeatureExtractor
 from src.model.train import GenreClassifier
 

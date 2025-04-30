@@ -15,6 +15,8 @@
 - Docker integration test is now working
 - Makefile provides easy-to-use targets for all project operations
 - All linting issues fixed - codebase now follows Python best practices
+- Fixed isort issues in import statements in src/api/main.py and src/model/evaluate.py
+- Added .isort.cfg configuration file to ensure consistent import formatting
 
 ## Next Steps
 - Phase 2: Data Processing and Feature Engineering
@@ -32,3 +34,5 @@
 - Unit test framework
 - Makefile for project management
 - Code linting and formatting compliance
+- Import sorting fixes
+- Isort configuration setup
