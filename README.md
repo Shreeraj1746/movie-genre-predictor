@@ -22,6 +22,22 @@ This project is designed as a learning journey to understand:
 - Deployment of ML models using FastAPI
 - Best practices for Python development (linting, testing, etc.)
 
+## Current Status
+
+As of the latest update, the project has:
+
+- ✅ Complete project structure with all necessary components
+- ✅ Pre-commit hooks configured with ruff, black, and commitizen
+- ✅ CI/CD pipeline with GitHub Actions
+- ✅ AWS deployment infrastructure using Terraform
+- ✅ Docker integration tests
+- ✅ Comprehensive testing framework
+- ✅ Makefile with convenient targets for testing and deployment
+- ✅ Enhanced health check system with basic and advanced monitoring
+- ✅ Deployment scripts with two-stage health checks and diagnostics
+
+See [status.md](status.md) for detailed progress and next steps.
+
 ## Project Structure
 
 ```
@@ -35,9 +51,9 @@ movie-genre-predictor/
 ├── terraform/                    # Terraform configurations
 │   ├── main.tf                   # Main Terraform configuration
 │   ├── variables.tf              # Terraform variables
-│   └── outputs.tf                # Terraform outputs
+│   ├── modules/                  # Terraform modules
+│   └── templates/                # Templates for configuration
 ├── notebooks/                    # Jupyter notebooks for exploration
-│   └── data_exploration.ipynb    # Initial data exploration
 ├── src/                          # Source code
 │   ├── data/                     # Data processing code
 │   │   ├── __init__.py
@@ -59,11 +75,13 @@ movie-genre-predictor/
 │       └── models.py             # Pydantic models
 ├── tests/                        # Test files
 │   ├── __init__.py
-│   ├── test_data.py              # Test data processing
+│   ├── test_api.py               # Test API endpoints
 │   ├── test_features.py          # Test feature engineering
 │   ├── test_model.py             # Test model training
-│   ├── test_api.py               # Test API endpoints
 │   └── test_integration.py       # End-to-end integration tests
+├── scripts/                      # Deployment and utility scripts
+├── models/                       # Saved model files
+├── reports/                      # Generated analysis reports
 ├── .gitignore                    # Git ignore file
 ├── .pre-commit-config.yaml       # Pre-commit hooks configuration
 ├── docker-compose.yml            # Docker Compose configuration
@@ -73,6 +91,7 @@ movie-genre-predictor/
 ├── requirements-dev.txt          # Development dependencies
 ├── run_integration_test.py       # Script to run Docker integration tests
 ├── setup.py                      # Package installation
+├── Makefile                      # Automation commands
 ├── status.md                     # Project status tracker
 └── README.md                     # Project documentation
 ```
@@ -83,6 +102,7 @@ movie-genre-predictor/
 
 - Python 3.10+
 - Git
+- Docker and Docker Compose (for integration testing)
 - AWS account (for deployment)
 - Terraform (for infrastructure)
 
@@ -99,7 +119,7 @@ movie-genre-predictor/
 
    ```bash
    python -m venv venv
-   source venv/bin/activate
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. Install dependencies:
@@ -117,6 +137,25 @@ movie-genre-predictor/
    ```
 
 ### Running the Project
+
+The project includes a Makefile with convenient targets for common operations:
+
+```bash
+# Run all tests and linting
+make all
+
+# Run only unit tests
+make test
+
+# Run linting checks
+make lint
+
+# Run the integration test
+make integration-test
+
+```
+
+For more detailed operations, see the specific commands below:
 
 #### Data Download and Preprocessing
 
@@ -139,143 +178,42 @@ uvicorn src.api.main:app --reload
 
 Visit <http://localhost:8000/docs> to see the API documentation.
 
-## Running Tests Locally
-
-### Unit Tests
-
-The project includes a comprehensive test suite to ensure code quality and reliability. You can run the unit tests using the Make target:
-
-```bash
-make test
-```
-
-This command will execute all unit tests and provide coverage information, showing which parts of the codebase are tested and which are not.
-
-To run specific tests, you can use pytest directly:
-
-```bash
-python -m pytest tests/test_model.py
-```
-
-### Running All Quality Checks
-
-To run both linting and tests in one command:
-
-```bash
-make all
-```
-
 ## Docker Integration Testing
 
-The project includes a Docker-based integration testing setup for running the entire workflow locally in a containerized environment.
-
-### Prerequisites
-
-- Docker
-- Docker Compose
+The project includes Docker-based integration testing for running the entire workflow in a containerized environment.
 
 ### Running Integration Tests
 
-To run the full integration test suite:
+To run the integration tests:
 
 ```bash
-make integration-test
-```
+# Run both integration test and workflow
+python run_integration_test.py
 
-This command:
-1. Builds a Docker image with the entire project
-2. Runs the integration test inside a Docker container
-3. Executes the end-to-end workflow using Docker Compose
-
-You can also run specific parts of the test:
-
-```bash
 # Run only the integration test
-make integration-test-only
+python run_integration_test.py --mode test
 
-# Run only the full workflow
-make workflow-only
+# Run only the workflow
+python run_integration_test.py --mode workflow
+
+# Build/use existing image and push to Docker Hub
+python run_integration_test.py --push
 ```
 
-### Test Dataset
-
-For integration testing, the project includes a sample data generator that creates a small synthetic dataset that mimics the structure of the full CMU Movie Summary Corpus. The sample data is small enough to be checked into the repository and serves as the "gold" test dataset.
-
-To generate the sample data manually:
-
-```bash
-python data/sample_data_generator.py
-```
-
-### Workflow Outputs
-
-After running the integration test, the following outputs will be generated:
-
-- Preprocessed data files in `data/processed/`
-- Trained model files in `models/logreg_*` (with timestamp)
-- Evaluation metrics in `models/logreg_*/model_info.json`
-
-These outputs are checked against expected values to ensure the workflow functions correctly.
-
-## CI/CD Pipeline
-
-This project uses GitHub Actions for CI/CD:
-
-### Continuous Integration (CI)
-
-The CI workflow (`ci.yml`) runs on every push and pull request:
-
-- Runs pre-commit hooks (ruff, black, commitizen)
-- Executes unit tests
-- Builds project artifacts
-
-### Continuous Deployment (CD)
-
-The CD workflow (`deploy.yml`) runs when changes are pushed to the main branch:
-
-- Connects to the EC2 instance via SSH
-- Pulls the latest code
-- Installs dependencies
-- Restarts the FastAPI service
+See [docs/DOCKER.md](docs/DOCKER.md) for detailed Docker usage instructions.
 
 ## AWS Deployment with Terraform
 
-This project includes automated infrastructure setup for deploying the Movie Genre Predictor to AWS using Terraform and testing it end-to-end.
-
-### Prerequisites
-
-- AWS CLI installed and configured with credentials in `~/.aws/credentials`
-- Terraform installed (version 1.0.0 or later)
-- Python 3.8 or later
-- netcat (`nc`) tool for network diagnostics
-
-### Deployment Scripts
-
-The `scripts` directory contains helper shell scripts to automate AWS deployment:
-
-- `deploy.sh` - Deploys the infrastructure using Terraform
-- `test.sh` - Tests the deployed application with health checks and a sample prediction
-- `destroy.sh` - Destroys all AWS resources created by Terraform
-- `deploy_test_destroy.sh` - Orchestrates the entire process in one command
+This project includes automated infrastructure setup for deploying to AWS using Terraform.
 
 ### Running the Deployment Pipeline
 
-To run the complete deployment pipeline (deploy, test, and destroy):
+To deploy, test, and (optionally) destroy the infrastructure:
 
 ```bash
 ./scripts/deploy_test_destroy.sh
-```
 
-This will:
-1. Deploy the application infrastructure to AWS
-2. Test the application's availability and functionality
-3. Destroy the infrastructure if tests pass
-
-### Options
-
-- `--no-destroy`: Keep the infrastructure running after testing
-
-```bash
+# Keep infrastructure running after testing
 ./scripts/deploy_test_destroy.sh --no-destroy
 ```
 
@@ -291,20 +229,11 @@ The AWS infrastructure consists of:
 
 ### Deployment Features
 
-- **Two-stage Health Checks**: The deployment includes both a basic health check endpoint (port 8080) and the main API health check (port 8000)
-- **Improved Resilience**: The system can validate deployment even if the main API is not fully operational
+- **Two-stage Health Checks**: Basic health endpoint (port 8080) and main API health check (port 8000)
+- **Improved Resilience**: Validates deployment even if the main API is not fully operational
 - **Graceful Degradation**: Simple HTTP server provides fallback functionality
 - **Real-time Diagnostics**: Detailed health check responses for troubleshooting
-- **Automatic Cleanup**: Resources are automatically destroyed after testing
-
-### Deployment Diagnostics
-
-The system provides several diagnostic features:
-
-- Basic health endpoint (`http://<ip>:8080/basic-health`)
-- System info in health check responses
-- Status tracking file on the instance
-- Fallback API endpoints
+- **Automatic Cleanup**: Resources are automatically destroyed after testing (if specified)
 
 ## License
 
