@@ -79,7 +79,7 @@ workflow-only:
 terraform-docs:
 	@echo "Generating documentation for Terraform modules..."
 	@if command -v terraform-docs >/dev/null 2>&1; then \
-		terraform-docs --config .terraform-docs.yml terraform; \
+		./scripts/generate_terraform_docs.sh; \
 	else \
 		echo "terraform-docs not found. Install with 'brew install terraform-docs' (macOS) or visit https://terraform-docs.io/user-guide/installation/"; \
 	fi
