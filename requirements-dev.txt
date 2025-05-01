@@ -12,3 +12,6 @@ jupyter==1.0.0
 notebook==7.0.6
 terraform-local==0.21.0
 python-terraform==0.10.1
+
+# External tools required (not pip-installable):
+# - terraform-docs - Install with brew install terraform-docs (macOS) or visit https://terraform-docs.io/user-guide/installation/

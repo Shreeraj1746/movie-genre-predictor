@@ -1,4 +1,4 @@
-.PHONY: clean test integration-test all lint install install-dev help venv
+.PHONY: clean test integration-test all lint install install-dev help venv terraform-docs
 
 # Check Python version
 PY_VERSION_FULL := $(shell python --version 2>&1)
@@ -25,6 +25,7 @@ help:
 	@echo "  clean          - Remove build artifacts and cache directories"
 	@echo "  all            - Run lint and tests (default)"
 	@echo "  venv           - Create a virtual environment"
+	@echo "  terraform-docs - Generate documentation for Terraform modules"
 	@echo
 	@echo "Current Python version: $(PY_VERSION_FULL)"
 
@@ -73,6 +74,15 @@ integration-test-only:
 workflow-only:
 	@echo "Running workflow only in Docker..."
 	$(PYTHON) run_integration_test.py --mode workflow
+
+# Generate documentation for Terraform modules
+terraform-docs:
+	@echo "Generating documentation for Terraform modules..."
+	@if command -v terraform-docs >/dev/null 2>&1; then \
+		terraform-docs --config .terraform-docs.yml terraform; \
+	else \
+		echo "terraform-docs not found. Install with 'brew install terraform-docs' (macOS) or visit https://terraform-docs.io/user-guide/installation/"; \
+	fi
 
 # Clean up build artifacts and cache directories
 clean:

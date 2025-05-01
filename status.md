@@ -19,6 +19,8 @@
 - Implemented AWS deployment testing workflow with improved resilience
 - Enhanced health check system with basic and advanced monitoring
 - Improved deployment scripts with two-stage health checks and diagnostics
+- Added terraform-docs for automatic Terraform module documentation
+- Created module-level README.md files with terraform-docs integration
 
 ## Next Steps
 - Improve model training process
@@ -62,3 +64,4 @@
 - Robust health check system with fallback diagnostics
 - Systemd service for reliable API process management
 - Enhanced error reporting and logging for deployment issues
+- Terraform module documentation with terraform-docs

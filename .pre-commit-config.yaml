@@ -28,6 +28,12 @@ repos:
       - id: isort
         name: isort (python)
 
+  - repo: https://github.com/terraform-docs/terraform-docs
+    rev: v0.16.0
+    hooks:
+      - id: terraform-docs-go
+        args: ["--config", ".terraform-docs.yml"]
+
   # Local hooks to run Python tests
   - repo: local
     hooks:

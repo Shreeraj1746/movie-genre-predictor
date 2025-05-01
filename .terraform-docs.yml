@@ -1,0 +1,71 @@
+---
+formatter: markdown
+version: 0.16.0
+
+header-from: main.tf
+footer-from: ""
+
+recursive:
+  enabled: true
+  path: terraform
+
+sections:
+  hide: []
+  show: []
+
+content: |-
+  {{ .Header }}
+
+  ## Usage
+
+  Basic usage of this module:
+
+  ```hcl
+  module "example" {
+    source = "path/to/module"
+
+    # Required variables
+    {{ range .Module.RequiredInputs }}
+    {{ .Name }} = {{ .GetValue }}
+    {{ end }}
+
+    # Optional variables with default values
+    {{ range .Module.OptionalInputs }}
+    # {{ .Name }} = {{ .GetValue }}
+    {{ end }}
+  }
+  ```
+
+  {{ .Requirements }}
+
+  {{ .Providers }}
+
+  {{ .Resources }}
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  escape: true
+  html: true
+  indent: 2
+  lockfile: true
+  required: true
+  sensitive: true
+  type: true
+
+output:
+  file: "README.md"
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+sort:
+  enabled: true
+  by: name
