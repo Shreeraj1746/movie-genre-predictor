@@ -2,6 +2,9 @@
 
 A complete end-to-end machine learning project that predicts movie genres based on plot summaries, orchestrated with Metaflow.
 
+<!-- BEGIN_TF_DOCS -->
+<!-- END_TF_DOCS -->
+
 ## Project Overview
 
 This project demonstrates a complete ML workflow using Metaflow for orchestration:
