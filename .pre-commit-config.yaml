@@ -28,7 +28,7 @@ repos:
       - id: isort
         name: isort (python)
 
-  # Local hooks to run Python tests
+  # Local hooks to generate Terraform docs and run Python tests
   - repo: local
     hooks:
       - id: terraform-docs-local
