@@ -58,12 +58,12 @@ settings:
   type: true
 
 output:
-  file: "README.md"
-  mode: inject
+  file: "TERRAFORM.md"
+  mode: replace
   template: |-
-    <!-- BEGIN_TF_DOCS -->
+    # Terraform Documentation
+
     {{ .Content }}
-    <!-- END_TF_DOCS -->
 
 sort:
   enabled: true

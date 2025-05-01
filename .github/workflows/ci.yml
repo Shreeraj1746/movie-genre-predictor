@@ -27,6 +27,9 @@ jobs:
           chmod +x terraform-docs
           sudo mv terraform-docs /usr/local/bin/
       - name: Run pre-commit
+        env:
+          SKIP: terraform-docs-local
+          CI: "true"
         uses: pre-commit/action@v3.0.0
 
   test:

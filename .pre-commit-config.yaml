@@ -39,6 +39,7 @@ repos:
         pass_filenames: false
         files: ^terraform/.*\.tf$
         exclude: \.terraform/.*$
+        stages: [commit]  # Only run on commits, not in CI
 
       - id: pytest-check
         name: pytest-check
