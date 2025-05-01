@@ -32,7 +32,7 @@ movie-genre-predictor/
 │       └── deploy.yml            # Deploy to EC2
 ├── data/                         # Data files
 │   └── README.md                 # Data description and sources
-├── infrastructure/               # Terraform configurations
+├── terraform/                    # Terraform configurations
 │   ├── main.tf                   # Main Terraform configuration
 │   ├── variables.tf              # Terraform variables
 │   └── outputs.tf                # Terraform outputs
@@ -238,25 +238,73 @@ The CD workflow (`deploy.yml`) runs when changes are pushed to the main branch:
 - Installs dependencies
 - Restarts the FastAPI service
 
-## AWS Deployment
+## AWS Deployment with Terraform
 
-The project is deployed to AWS EC2 (t3.micro instance) using Terraform:
+This project includes automated infrastructure setup for deploying the Movie Genre Predictor to AWS using Terraform and testing it end-to-end.
 
-1. Configure AWS credentials:
+### Prerequisites
 
-   ```bash
-   aws configure
-   ```
+- AWS CLI installed and configured with credentials in `~/.aws/credentials`
+- Terraform installed (version 1.0.0 or later)
+- Python 3.8 or later
+- netcat (`nc`) tool for network diagnostics
 
-2. Initialize and apply Terraform:
+### Deployment Scripts
 
-   ```bash
-   cd infrastructure
-   terraform init
-   terraform apply
-   ```
+The `scripts` directory contains helper shell scripts to automate AWS deployment:
 
-3. The FastAPI application will be automatically deployed by the CD pipeline.
+- `deploy.sh` - Deploys the infrastructure using Terraform
+- `test.sh` - Tests the deployed application with health checks and a sample prediction
+- `destroy.sh` - Destroys all AWS resources created by Terraform
+- `deploy_test_destroy.sh` - Orchestrates the entire process in one command
+
+### Running the Deployment Pipeline
+
+To run the complete deployment pipeline (deploy, test, and destroy):
+
+```bash
+./scripts/deploy_test_destroy.sh
+```
+
+This will:
+1. Deploy the application infrastructure to AWS
+2. Test the application's availability and functionality
+3. Destroy the infrastructure if tests pass
+
+### Options
+
+- `--no-destroy`: Keep the infrastructure running after testing
+
+```bash
+./scripts/deploy_test_destroy.sh --no-destroy
+```
+
+### Deployment Architecture
+
+The AWS infrastructure consists of:
+
+- VPC with public subnets
+- Security group with ports 22 (SSH), 8000 (API), and 8080 (health check)
+- EC2 instance running the API
+- S3 bucket for model storage
+- IAM role for S3 access
+
+### Deployment Features
+
+- **Two-stage Health Checks**: The deployment includes both a basic health check endpoint (port 8080) and the main API health check (port 8000)
+- **Improved Resilience**: The system can validate deployment even if the main API is not fully operational
+- **Graceful Degradation**: Simple HTTP server provides fallback functionality
+- **Real-time Diagnostics**: Detailed health check responses for troubleshooting
+- **Automatic Cleanup**: Resources are automatically destroyed after testing
+
+### Deployment Diagnostics
+
+The system provides several diagnostic features:
+
+- Basic health endpoint (`http://<ip>:8080/basic-health`)
+- System info in health check responses
+- Status tracking file on the instance
+- Fallback API endpoints
 
 ## License
 
